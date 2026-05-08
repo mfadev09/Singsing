@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Karaoke - Ultimate Edition</title>
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --electric-blue: #0047FF; 
+            --spotify-text: #ffffff;
+            --spotify-gray: #b3b3b3;
+        }
+
+        body {
+            font-family: 'Circular', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--spotify-black);
+            color: var(--spotify-text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .spotify-container {
+            width: 100%;
+            max-width: 500px;
+            background: linear-gradient(to bottom, var(--electric-blue) 0%, var(--spotify-black) 100%);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 15px 45px rgba(0, 71, 255, 0.3);
+            text-align: center;
+        }
+
+        .now-playing-header {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .display-card {
+            background-color: var(--electric-blue);
+            border-radius: 15px;
+            padding: 30px 25px 20px 25px;
+            margin-bottom: 24px;
+            height: 520px; /* Altura fija para permitir el scroll */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        #song-title {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-align: left;
+            letter-spacing: -1px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        #artist-name {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            text-align: left;
+            font-weight: 500;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+        }
+
+        #lyrics-container {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.6;
+            text-align: left;
+            color: rgba(0, 0, 0, 0.45);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            white-space: pre-line;
+            overflow-y: auto; /* Activa el scroll vertical */
+            flex-grow: 1; /* Toma todo el espacio sobrante de la tarjeta */
+            padding-right: 10px;
+        }
+
+        /* Diseño de la barra de scroll estilo app */
+        #lyrics-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #lyrics-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        #lyrics-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        #lyrics-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .lyrics-active {
+            color: var(--spotify-text) !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .play-button {
+            width: 65px;
+            height: 65px;
+            background-color: var(--spotify-text);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s;
+        }
+
+        .play-button:hover { transform: scale(1.06); }
+
+        .icon-play::after {
+            content: '';
+            width: 0; height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 18px solid black;
+            margin-left: 4px;
+        }
+
+        .icon-stop::after {
+            content: '';
+            width: 18px; height: 18px;
+            background-color: black;
+            border-radius: 2px;
+        }
+
+        .footer-info {
+            font-size: 12px;
+            color: var(--spotify-gray);
+            margin-top: 35px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="spotify-container">
+        <div class="now-playing-header">Biblioteca Gigante</div>
+        
+        <div class="display-card" id="card">
+            <div id="song-title">Karaoke Roulette</div>
+            <div id="artist-name">Versión Letras Extendidas</div>
+            <div id="lyrics-container">Presiona Play para el desafío...<br><br>(Ahora puedes deslizar hacia abajo para leer toda la letra)</div>
+        </div>
+
+        <div class="controls">
+            <button id="main-btn" class="play-button">
+                <div id="btn-icon" class="icon-play"></div>
+            </button>
+        </div>
+
+        <div class="footer-info">El show de jóvenes católicos</div>
+    </div>
+
+    <script>
+        const songs = [
+            // --- ENRIQUE IGLESIAS ---
+            { t: "Bailando", a: "Enrique Iglesias, Gente de Zona", l: "Yo te miro y se me corta la respiración\nCuando tú me miras se me sube el corazón\nY en un silencio tu mirada dice mil palabras\nLa noche en la que te suplico que no salga el sol\n\nYo quiero estar contigo, vivir contigo\nBailar contigo, tener contigo\nUna noche loca (una noche loca)\nAy, besar tu boca (besar tu boca)\nYo quiero estar contigo, vivir contigo\nBailar contigo, tener contigo..." },
+            { t: "I Like It", a: "Enrique Iglesias, Pitbull", l: "One life, one love\nY'all know what time it is\nWe go set it off tonight, just go\nSet the club on fire, just go!\n\nBaby, I like it\nThe way you move on the floor\nBaby, I like it\nCome on and give me some more\nOh, yes, I like it\nScreaming like never before\nBaby, I like it\nI, I, I like it!" },
+            { t: "Experiencia Religiosa", a: "Enrique Iglesias", l: "Es una experiencia religiosa\nSentir que resucito si me tocas\nSubir al cielo un rato en tu boca\nEs una experiencia religiosa\nSentir que resucito si me tocas\nSubir al cielo un rato en tu boca\n\nY es que te siento tan dentro de mí\nQue ya no puedo vivir sin ti\nY es que te siento tan dentro de mí\nQue ya no puedo vivir sin ti" },
+            { t: "Héroe", a: "Enrique Iglesias", l: "Déjame tocarte\nQuiero penetrar tu corazón\nDéjame besarte\nQuiero que te sientas junto a mí\n\nPorque yo...\nSi pudiera ser tu héroe\nSi pudiera ser tu Dios\nQue te salva de este mundo\nYo sería tu salvación\n\nLloraré por ti\nSufriré por ti\nLo haré por ti..." },
+
+            // --- CLÁSICOS ANGLO ---
+            { t: "Billie Jean", a: "Michael Jackson", l: "People always told me be careful of what you do\nAnd don't go around breaking young girls' hearts\nAnd mother always told me be careful of who you love\nAnd be careful of what you do 'cause the lie becomes the truth\n\nBillie Jean is not my lover\nShe's just a girl who claims that I am the one\nBut the kid is not my son\nShe says I am the one, but the kid is not my son" },
+            { t: "Beat It", a: "Michael Jackson", l: "They told him, \"Don't you ever come around here\"\n\"Don't wanna see your face, you better disappear\"\nThe fire's in their eyes and their words are really clear\nSo beat it, just beat it\n\nYou better run, you better do what you can\nDon't wanna see no blood, don't be a macho man\nYou wanna be tough, better do what you can\nSo beat it, but you wanna be bad\n\nJust beat it, beat it, beat it, beat it\nNo one wants to be defeated" },
+            { t: "Bohemian Rhapsody", a: "Queen", l: "Is this the real life?\nIs this just fantasy?\nCaught in a landslide\nNo escape from reality\n\nOpen your eyes\nLook up to the skies and see\nI'm just a poor boy, I need no sympathy\nBecause I'm easy come, easy go\nA little high, a little low\nAnyway the wind blows\nDoesn't really matter to me, to me..." },
+            { t: "Don't Stop Me Now", a: "Queen", l: "Tonight I'm gonna have myself a real good time\nI feel alive\nAnd the world I'll turn it inside out, yeah\nI'm floating around in ecstasy\n\nSo, (don't stop me now)\n(Don't stop me)\n'Cause I'm having a good time, having a good time\nI'm a shooting star leaping through the sky\nLike a tiger defying the laws of gravity!" },
+
+            // --- SHAKIRA & MALUMA ---
+            { t: "Waka Waka", a: "Shakira", l: "Llegó el momento, caen las murallas\nVa a ser una batalla, ya no hay miedo\nPonle la firma, ya no hay vuelta atrás\nAquí se vino a ganar, sin dar un paso atrás\n\nTsamina mina, zangalewa\nPorque esto es África\nTsamina mina eh eh\nWaka waka eh eh\nTsamina mina zangalewa\nPorque esto es África" },
+            { t: "Hips Don't Lie", a: "Shakira", l: "I never really knew that she could dance like this\nShe make a man wants to speak Spanish\n¿Cómo se llama? (Sí), bonita (sí)\nMi casa, su casa\n\nShakira, Shakira\n\nI'm on tonight, you know my hips don't lie\nAnd I'm starting to feel it's right\nAll the attraction, the tension\nDon't you see, baby, this is perfection?" },
+            { t: "Hawái", a: "Maluma", l: "Deja de mentirte\nLa foto que subiste con él diciendo que era tu cielo\nBebé, yo te conozco tan bien, sé que fue pa' darme celos\nNo te diré quién, pero llorando por mí te vieron\n\nPuede que no te haga falta na', aparentemente na'\nHawái de vacaciones, mis felicitaciones\nMuy lindo en Instagram lo que posteas\nPa' que yo vea cómo te va, pa' que yo vea" },
+
+            // --- ROCK ARGENTINO ---
+            { t: "De Música Ligera", a: "Soda Stereo", l: "Ella durmió\nAl calor de las masas\nY yo desperté\Queriendo soñarla\n\nAlgún tiempo atrás\nPensé en escribirle\nY nunca sorteé\nLas trampas del amor\n\nDe aquel amor de música ligera\nNada nos libra, nada más queda\nNo le enviaré cenizas de rosas\nNi pienso evitar un roce secreto" },
+            { t: "Trátame Suavemente", a: "Soda Stereo", l: "Alguien me ha dicho que la soledad\nSe esconde tras tus ojos\nY que tu cárcel es mi cuerpo\nQue tu cárcel son mis brazos\n\nNo quiero soñar mil veces las mismas cosas\nNi contemplarlas sabiamente\nQuiero que me trates suavemente\nQuiero que me trates suavemente" },
+            { t: "Lamento Boliviano", a: "Enanitos Verdes", l: "Me quieren agitar\nMe incitan a gritar\nSoy como una roca\nPalabras no me tocan\n\nAdentro hay un volcán\nQue pronto va a estallar\nYo quiero estar tranquilo\n\nY yo estoy aquí, borracho y loco\nY mi corazón idiota siempre brillará\nY yo te amaré, te amaré por siempre\nNena, no te peines en la cama\nQue los viajantes se van a atrasar" },
+
+            // --- LUIS MIGUEL ---
+            { t: "La Incondicional", a: "Luis Miguel", l: "Tú, la misma siempre tú\nAmistad, ternura qué sé yo\nTú, mi sombra has sido tú\nLa historia de un amor\nQue no fue nada\n\nTú, la misma de ayer, la incondicional\nLa que no espera nada\nTú, la misma de ayer, la que no pregunta\nA dónde voy, a dónde vas\nTú, un hotel, tu cuerpo y un adiós" },
+            { t: "Ahora Te Puedes Marchar", a: "Luis Miguel", l: "Si tú me hubieras dicho siempre la verdad\nSi hubieras respondido cuando te llamé\nSi hubieras amado cuando te amé\nSerías en mis sueños la mejor mujer\n\nPero no fue así y hoy te vas\n\nSi no supiste amar\nAhora te puedes marchar\nSi tú no sabes qué es el amor\nNo tienes perdón\nSi tú supieras qué es el dolor..." },
+
+            // --- COLDPLAY & TAYLOR SWIFT ---
+            { t: "Yellow", a: "Coldplay", l: "Look at the stars\nLook how they shine for you\nAnd everything you do\nYeah, they were all yellow\n\nI came along\nI wrote a song for you\nAnd all the things you do\nAnd it was called Yellow\n\nSo then I took my turn\nOh, what a thing to have done\nAnd it was all yellow" },
+            { t: "Love Story", a: "Taylor Swift", l: "We were both young when I first saw you\nI close my eyes and the flashback starts\nI'm standin' there\nOn a balcony in summer air\n\nSee the lights, see the party, the ball gowns\nSee you make your way through the crowd\nAnd say, 'Hello'\nLittle did I know...\n\nThat you were Romeo, you were throwin' pebbles\nAnd my daddy said, 'Stay away from Juliet'" },
+
+            // --- CHAYANNE Y POP LATINO ---
+            { t: "Torero", a: "Chayanne", l: "De lunes a domingo voy desesperado\nEl corazón en la mano gritando que te amo\nNo me importa lo que digan, lo que piensen los demás\nYo te quiero todavía, mucho más\n\nPorque yo, yo te quiero, mi amor\nY no me importa lo que diga la gente\nYo te quiero, mi amor\nDe lunes a domingo, mi mente te tiene presente\nTorero! Poner el alma en el ruedo" },
+            { t: "Rayando El Sol", a: "Maná", l: "Rayando el sol\nDesesperación\nEs más fácil llegar al sol que a tu corazón\n\nMe muero por ti, viviendo sin ti\nY no aguanto, me duele tanto estar así\nRayando el sol\n\nA tu casa yo fui y no te encontré\nEn el parque, en la plaza, en el cine yo te busqué\nTe tengo atrapada entre mi piel y mi alma" },
+            { t: "Color Esperanza", a: "Diego Torres", l: "Sé que hay en tus ojos con solo mirar\nQue estás cansado de andar y de andar\nY caminar girando siempre en un lugar\n\nSaber que se puede, querer que se pueda\nQuitarse los miedos, sacarlos afuera\nPintarse la cara color esperanza\nTentar al futuro con el corazón\n\nEs mejor perderse que nunca embarcar" },
+
+            // --- BONUS ---
+            { t: "Take On Me", a: "A-ha", l: "We're talking away\nI don't know what I'm to say\nI'll say it anyway\nToday's another day to find you\nShying away\nI'll be coming for your love, OK?\n\nTake on me (Take on me)\nTake me on (Take on me)\nI'll be gone\nIn a day or two" },
+            { t: "Despacito", a: "Luis Fonsi ft. Daddy Yankee", l: "Sí, sabes que ya llevo un rato mirándote\nTengo que bailar contigo hoy\nVi que tu mirada ya estaba llamándome\nMuéstrame el camino que yo voy\n\nTú, tú eres el imán y yo soy el metal\nMe voy acercando y voy armando el plan\nSolo con pensarlo se acelera el pulso\n\nDespacito\nQuiero respirar tu cuello despacito\nDeja que te diga cosas al oído..." }
+        ];
+
+        let spinning = false;
+        let timer;
+        const btn = document.getElementById('main-btn');
+        const icon = document.getElementById('btn-icon');
+        const titleEl = document.getElementById('song-title');
+        const artistEl = document.getElementById('artist-name');
+        const lyricsEl = document.getElementById('lyrics-container');
+
+        function spin() {
+            spinning = true;
+            icon.className = "icon-stop";
+            lyricsEl.classList.remove('lyrics-active');
+            
+            timer = setInterval(() => {
+                const pick = songs[Math.floor(Math.random() * songs.length)];
+                titleEl.innerText = pick.t;
+                artistEl.innerText = pick.a;
+                lyricsEl.innerText = pick.l;
+                // Vuelve el scroll hacia arriba mientras gira
+                lyricsEl.scrollTop = 0; 
+            }, 65);
+        }
+
+        function stop() {
+            spinning = false;
+            icon.className = "icon-play";
+            clearInterval(timer);
+            lyricsEl.classList.add('lyrics-active');
+        }
+
+        btn.addEventListener('click', () => {
+            if (spinning) stop();
+            else spin();
+        });
+    </script>
+</body>
+</html>
+
