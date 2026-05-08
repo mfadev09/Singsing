@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Karaoke - Ultimate Edition</title>
+    <title>Sing the Song - Letras Completas</title>
     <style>
         :root {
             --spotify-black: #121212;
             --electric-blue: #0047FF; 
             --spotify-text: #ffffff;
             --spotify-gray: #b3b3b3;
+            --card-bg: rgba(0, 71, 255, 0.15);
         }
 
         body {
@@ -26,234 +27,1100 @@
         .spotify-container {
             width: 100%;
             max-width: 500px;
+            height: 90vh;
+            max-height: 800px;
             background: linear-gradient(to bottom, var(--electric-blue) 0%, var(--spotify-black) 100%);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 15px 45px rgba(0, 71, 255, 0.3);
-            text-align: center;
-        }
-
-        .now-playing-header {
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 25px;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .display-card {
-            background-color: var(--electric-blue);
+            padding: 20px;
             border-radius: 15px;
-            padding: 30px 25px 20px 25px;
-            margin-bottom: 24px;
-            height: 520px; /* Altura fija para permitir el scroll */
+            box-shadow: 0 15px 45px rgba(0, 71, 255, 0.3);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
         }
 
-        #song-title {
-            font-size: 28px;
-            font-weight: 900;
-            margin-bottom: 5px;
-            text-align: left;
-            letter-spacing: -1px;
-            color: white;
-            flex-shrink: 0;
-        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin: 0; font-weight: 900; text-transform: uppercase; }
+        .header p { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-top: 5px; letter-spacing: 2px; }
 
-        #artist-name {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
-            text-align: left;
-            font-weight: 500;
-            flex-shrink: 0;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 15px;
-        }
+        #list-view { display: flex; flex-direction: column; height: 100%; }
 
-        #lyrics-container {
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 1.6;
-            text-align: left;
-            color: rgba(0, 0, 0, 0.45);
-            transition: color 0.3s ease, text-shadow 0.3s ease;
-            white-space: pre-line;
-            overflow-y: auto; /* Activa el scroll vertical */
-            flex-grow: 1; /* Toma todo el espacio sobrante de la tarjeta */
-            padding-right: 10px;
-        }
-
-        /* Diseño de la barra de scroll estilo app */
-        #lyrics-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        #lyrics-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-        #lyrics-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
-        #lyrics-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .lyrics-active {
-            color: var(--spotify-text) !important;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .play-button {
-            width: 65px;
-            height: 65px;
-            background-color: var(--spotify-text);
-            border-radius: 50%;
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border-radius: 30px;
             border: none;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .search-box::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .search-box:focus { background: rgba(255, 255, 255, 0.3); }
+
+        #song-list {
+            flex-grow: 1;
+            overflow-y: auto;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.1s;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 5px;
         }
 
-        .play-button:hover { transform: scale(1.06); }
-
-        .icon-play::after {
-            content: '';
-            width: 0; height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-left: 18px solid black;
-            margin-left: 4px;
+        #song-list::-webkit-scrollbar, #lyrics-content::-webkit-scrollbar { width: 5px; }
+        #song-list::-webkit-scrollbar-thumb, #lyrics-content::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.3); 
+            border-radius: 10px; 
         }
 
-        .icon-stop::after {
-            content: '';
-            width: 18px; height: 18px;
-            background-color: black;
-            border-radius: 2px;
+        .song-item {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+        .song-item:hover { background: rgba(255, 255, 255, 0.15); }
+
+        .song-item-title { font-size: 16px; font-weight: bold; margin-bottom: 3px; }
+        .song-item-artist { font-size: 13px; color: var(--spotify-gray); }
+
+        #lyrics-view {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--spotify-black);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
         }
 
-        .footer-info {
-            font-size: 12px;
-            color: var(--spotify-gray);
-            margin-top: 35px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        #lyrics-view.active { transform: translateX(0); }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            width: fit-content;
+        }
+
+        #active-title { font-size: 26px; font-weight: 900; color: var(--electric-blue); margin: 0; }
+        #active-artist { font-size: 16px; color: var(--spotify-gray); margin: 5px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        #lyrics-content { 
+            font-size: 18px; 
+            line-height: 1.6; 
+            font-weight: 500; 
+            white-space: pre-line; 
+            overflow-y: auto; 
+            flex-grow: 1; 
+            padding-right: 10px;
+            padding-bottom: 40px;
         }
     </style>
 </head>
 <body>
 
     <div class="spotify-container">
-        <div class="now-playing-header">Biblioteca Gigante</div>
-        
-        <div class="display-card" id="card">
-            <div id="song-title">Sing the Sing</div>
-            <div id="artist-name">Dinamica de la noche</div>
-            <div id="lyrics-container">Presiona Play para el desafío...<br><br>(Ahora puedes deslizar hacia abajo para leer toda la letra)</div>
+        <div id="list-view">
+            <div class="header">
+                <h1>SING THE SING</h1>
+                <p>El Show de JóvenesCatólicos</p>
+            </div>
+            <input type="text" id="search-bar" class="search-box" placeholder="Buscar canción o artista...">
+            <div id="song-list"></div>
         </div>
 
-        <div class="controls">
-            <button id="main-btn" class="play-button">
-                <div id="btn-icon" class="icon-play"></div>
-            </button>
+        <div id="lyrics-view">
+            <button class="back-btn" id="btn-back">← Volver a la lista</button>
+            <h2 id="active-title"></h2>
+            <h3 id="active-artist"></h3>
+            <div id="lyrics-content"></div>
         </div>
-
-        <div class="footer-info">El show de jóvenes católicos</div>
     </div>
 
     <script>
         const songs = [
-            // --- ENRIQUE IGLESIAS ---
-            { t: "Bailando", a: "Enrique Iglesias, Gente de Zona", l: "Yo te miro y se me corta la respiración\nCuando tú me miras se me sube el corazón\nY en un silencio tu mirada dice mil palabras\nLa noche en la que te suplico que no salga el sol\n\nYo quiero estar contigo, vivir contigo\nBailar contigo, tener contigo\nUna noche loca (una noche loca)\nAy, besar tu boca (besar tu boca)\nYo quiero estar contigo, vivir contigo\nBailar contigo, tener contigo..." },
-            { t: "I Like It", a: "Enrique Iglesias, Pitbull", l: "One life, one love\nY'all know what time it is\nWe go set it off tonight, just go\nSet the club on fire, just go!\n\nBaby, I like it\nThe way you move on the floor\nBaby, I like it\nCome on and give me some more\nOh, yes, I like it\nScreaming like never before\nBaby, I like it\nI, I, I like it!" },
-            { t: "Experiencia Religiosa", a: "Enrique Iglesias", l: "Es una experiencia religiosa\nSentir que resucito si me tocas\nSubir al cielo un rato en tu boca\nEs una experiencia religiosa\nSentir que resucito si me tocas\nSubir al cielo un rato en tu boca\n\nY es que te siento tan dentro de mí\nQue ya no puedo vivir sin ti\nY es que te siento tan dentro de mí\nQue ya no puedo vivir sin ti" },
-            { t: "Héroe", a: "Enrique Iglesias", l: "Déjame tocarte\nQuiero penetrar tu corazón\nDéjame besarte\nQuiero que te sientas junto a mí\n\nPorque yo...\nSi pudiera ser tu héroe\nSi pudiera ser tu Dios\nQue te salva de este mundo\nYo sería tu salvación\n\nLloraré por ti\nSufriré por ti\nLo haré por ti..." },
+            // ENRIQUE IGLESIAS
+            { t: "Bailando", a: "Enrique Iglesias", l: `Yo te miro y se me corta la respiración
+Cuando tú me miras se me sube el corazón
+(Me palpita lento el corazón)
+Y en un silencio tu mirada dice mil palabras
+La noche en la que te suplico que no salga el sol
 
-            // --- CLÁSICOS ANGLO ---
-            { t: "Billie Jean", a: "Michael Jackson", l: "People always told me be careful of what you do\nAnd don't go around breaking young girls' hearts\nAnd mother always told me be careful of who you love\nAnd be careful of what you do 'cause the lie becomes the truth\n\nBillie Jean is not my lover\nShe's just a girl who claims that I am the one\nBut the kid is not my son\nShe says I am the one, but the kid is not my son" },
-            { t: "Beat It", a: "Michael Jackson", l: "They told him, \"Don't you ever come around here\"\n\"Don't wanna see your face, you better disappear\"\nThe fire's in their eyes and their words are really clear\nSo beat it, just beat it\n\nYou better run, you better do what you can\nDon't wanna see no blood, don't be a macho man\nYou wanna be tough, better do what you can\nSo beat it, but you wanna be bad\n\nJust beat it, beat it, beat it, beat it\nNo one wants to be defeated" },
-            { t: "Bohemian Rhapsody", a: "Queen", l: "Is this the real life?\nIs this just fantasy?\nCaught in a landslide\nNo escape from reality\n\nOpen your eyes\nLook up to the skies and see\nI'm just a poor boy, I need no sympathy\nBecause I'm easy come, easy go\nA little high, a little low\nAnyway the wind blows\nDoesn't really matter to me, to me..." },
-            { t: "Don't Stop Me Now", a: "Queen", l: "Tonight I'm gonna have myself a real good time\nI feel alive\nAnd the world I'll turn it inside out, yeah\nI'm floating around in ecstasy\n\nSo, (don't stop me now)\n(Don't stop me)\n'Cause I'm having a good time, having a good time\nI'm a shooting star leaping through the sky\nLike a tiger defying the laws of gravity!" },
+Bailando, bailando, bailando, bailando
+Tu cuerpo y el mío llenando el vacío
+Subiendo y bajando (subiendo y bajando)
+Bailando, bailando, bailando, bailando
+Ese fuego por dentro me está enloqueciendo
+Me va saturando
 
-            // --- SHAKIRA & MALUMA ---
-            { t: "Waka Waka", a: "Shakira", l: "Llegó el momento, caen las murallas\nVa a ser una batalla, ya no hay miedo\nPonle la firma, ya no hay vuelta atrás\nAquí se vino a ganar, sin dar un paso atrás\n\nTsamina mina, zangalewa\nPorque esto es África\nTsamina mina eh eh\nWaka waka eh eh\nTsamina mina zangalewa\nPorque esto es África" },
-            { t: "Hips Don't Lie", a: "Shakira", l: "I never really knew that she could dance like this\nShe make a man wants to speak Spanish\n¿Cómo se llama? (Sí), bonita (sí)\nMi casa, su casa\n\nShakira, Shakira\n\nI'm on tonight, you know my hips don't lie\nAnd I'm starting to feel it's right\nAll the attraction, the tension\nDon't you see, baby, this is perfection?" },
-            { t: "Hawái", a: "Maluma", l: "Deja de mentirte\nLa foto que subiste con él diciendo que era tu cielo\nBebé, yo te conozco tan bien, sé que fue pa' darme celos\nNo te diré quién, pero llorando por mí te vieron\n\nPuede que no te haga falta na', aparentemente na'\nHawái de vacaciones, mis felicitaciones\nMuy lindo en Instagram lo que posteas\nPa' que yo vea cómo te va, pa' que yo vea" },
+Con tu física y tu química también tu anatomía
+La cerveza y el tequila y tu boca con la mía
+Ya no puedo más (ya no puedo más)
+Ya no puedo más (ya no puedo más)
 
-            // --- ROCK ARGENTINO ---
-            { t: "De Música Ligera", a: "Soda Stereo", l: "Ella durmió\nAl calor de las masas\nY yo desperté\Queriendo soñarla\n\nAlgún tiempo atrás\nPensé en escribirle\nY nunca sorteé\nLas trampas del amor\n\nDe aquel amor de música ligera\nNada nos libra, nada más queda\nNo le enviaré cenizas de rosas\nNi pienso evitar un roce secreto" },
-            { t: "Trátame Suavemente", a: "Soda Stereo", l: "Alguien me ha dicho que la soledad\nSe esconde tras tus ojos\nY que tu cárcel es mi cuerpo\nQue tu cárcel son mis brazos\n\nNo quiero soñar mil veces las mismas cosas\nNi contemplarlas sabiamente\nQuiero que me trates suavemente\nQuiero que me trates suavemente" },
-            { t: "Lamento Boliviano", a: "Enanitos Verdes", l: "Me quieren agitar\nMe incitan a gritar\nSoy como una roca\nPalabras no me tocan\n\nAdentro hay un volcán\nQue pronto va a estallar\nYo quiero estar tranquilo\n\nY yo estoy aquí, borracho y loco\nY mi corazón idiota siempre brillará\nY yo te amaré, te amaré por siempre\nNena, no te peines en la cama\nQue los viajantes se van a atrasar" },
+Yo quiero estar contigo, vivir contigo
+Bailar contigo, tener contigo
+Una noche loca (una noche loca)
+Ay besar tu boca (y besar tu boca)
+Yo quiero estar contigo, vivir contigo
+Bailar contigo, tener contigo
+Una noche loca, con tremenda loca` },
 
-            // --- LUIS MIGUEL ---
-            { t: "La Incondicional", a: "Luis Miguel", l: "Tú, la misma siempre tú\nAmistad, ternura qué sé yo\nTú, mi sombra has sido tú\nLa historia de un amor\nQue no fue nada\n\nTú, la misma de ayer, la incondicional\nLa que no espera nada\nTú, la misma de ayer, la que no pregunta\nA dónde voy, a dónde vas\nTú, un hotel, tu cuerpo y un adiós" },
-            { t: "Ahora Te Puedes Marchar", a: "Luis Miguel", l: "Si tú me hubieras dicho siempre la verdad\nSi hubieras respondido cuando te llamé\nSi hubieras amado cuando te amé\nSerías en mis sueños la mejor mujer\n\nPero no fue así y hoy te vas\n\nSi no supiste amar\nAhora te puedes marchar\nSi tú no sabes qué es el amor\nNo tienes perdón\nSi tú supieras qué es el dolor..." },
+            { t: "I Like It", a: "Enrique Iglesias", l: `One life, one love
+Y'all know what time it is
+We go set it off tonight, just go
+Set the club on fire, just go
 
-            // --- COLDPLAY & TAYLOR SWIFT ---
-            { t: "Yellow", a: "Coldplay", l: "Look at the stars\nLook how they shine for you\nAnd everything you do\nYeah, they were all yellow\n\nI came along\nI wrote a song for you\nAnd all the things you do\nAnd it was called Yellow\n\nSo then I took my turn\nOh, what a thing to have done\nAnd it was all yellow" },
-            { t: "Love Story", a: "Taylor Swift", l: "We were both young when I first saw you\nI close my eyes and the flashback starts\nI'm standin' there\nOn a balcony in summer air\n\nSee the lights, see the party, the ball gowns\nSee you make your way through the crowd\nAnd say, 'Hello'\nLittle did I know...\n\nThat you were Romeo, you were throwin' pebbles\nAnd my daddy said, 'Stay away from Juliet'" },
+Girl, please excuse me
+If I'm coming too strong
+But tonight is the night
+We can really let go
+My girlfriend is out of town
+And I'm all alone
+Your boyfriend is on vacation
+And he doesn't have to know
 
-            // --- CHAYANNE Y POP LATINO ---
-            { t: "Torero", a: "Chayanne", l: "De lunes a domingo voy desesperado\nEl corazón en la mano gritando que te amo\nNo me importa lo que digan, lo que piensen los demás\nYo te quiero todavía, mucho más\n\nPorque yo, yo te quiero, mi amor\nY no me importa lo que diga la gente\nYo te quiero, mi amor\nDe lunes a domingo, mi mente te tiene presente\nTorero! Poner el alma en el ruedo" },
-            { t: "Rayando El Sol", a: "Maná", l: "Rayando el sol\nDesesperación\nEs más fácil llegar al sol que a tu corazón\n\nMe muero por ti, viviendo sin ti\nY no aguanto, me duele tanto estar así\nRayando el sol\n\nA tu casa yo fui y no te encontré\nEn el parque, en la plaza, en el cine yo te busqué\nTe tengo atrapada entre mi piel y mi alma" },
-            { t: "Color Esperanza", a: "Diego Torres", l: "Sé que hay en tus ojos con solo mirar\nQue estás cansado de andar y de andar\nY caminar girando siempre en un lugar\n\nSaber que se puede, querer que se pueda\nQuitarse los miedos, sacarlos afuera\nPintarse la cara color esperanza\nTentar al futuro con el corazón\n\nEs mejor perderse que nunca embarcar" },
+No, oh, oh, oh, oh
+No one can do the things I'm gonna wanna do to you
+No, oh, oh, oh, oh
+Shout aloud, let it out, let it out
 
-            // --- BONUS ---
-            { t: "Take On Me", a: "A-ha", l: "We're talking away\nI don't know what I'm to say\nI'll say it anyway\nToday's another day to find you\nShying away\nI'll be coming for your love, OK?\n\nTake on me (Take on me)\nTake me on (Take on me)\nI'll be gone\nIn a day or two" },
-            { t: "Despacito", a: "Luis Fonsi ft. Daddy Yankee", l: "Sí, sabes que ya llevo un rato mirándote\nTengo que bailar contigo hoy\nVi que tu mirada ya estaba llamándome\nMuéstrame el camino que yo voy\n\nTú, tú eres el imán y yo soy el metal\nMe voy acercando y voy armando el plan\nSolo con pensarlo se acelera el pulso\n\nDespacito\nQuiero respirar tu cuello despacito\nDeja que te diga cosas al oído..." }
+Baby I like it
+The way you move on the floor
+Baby I like it
+Come on and give me some more
+Oh yes I like it
+Screaming like never before
+Baby I like it
+I, I, I like it` },
+
+            { t: "Experiencia Religiosa", a: "Enrique Iglesias", l: `Y es que te siento tan dentro de mí
+Que ya no puedo vivir sin ti
+Me he enamorado por vez primera
+Y ahora te quiero más que a mi vida
+Más que a mi vida
+
+Es una experiencia religiosa
+Sentir que resucito si me tocas
+Subir al cielo un rato en tu boca
+Es una experiencia religiosa
+
+Sentir que resucito si me tocas
+Subir al cielo un rato en tu boca
+Es una experiencia religiosa
+
+Llorar amando
+Sentir cómo se apaga
+Tu luz y mi luz` },
+
+            { t: "Héroe", a: "Enrique Iglesias", l: `Déjame tocarte
+Quiero penetrar tu corazón
+Déjame besarte
+Quiero que te sientas junto a mí
+Porque yo...
+
+Si pudiera ser tu héroe
+Si pudiera ser tu Dios
+Que te salva de este mundo
+Yo sería tu salvación
+
+Lloraré por ti
+Sufriré por ti
+Lo haré por ti
+Porque yo...
+
+Si pudiera ser tu héroe
+Si pudiera ser tu Dios
+Que te salva de este mundo
+Yo sería tu salvación` },
+
+            // CLÁSICOS ANGLO
+            { t: "Billie Jean", a: "Michael Jackson", l: `She was more like a beauty queen from a movie scene
+I said don't mind, but what do you mean, I am the one
+Who will dance on the floor in the round?
+She said I am the one, who will dance on the floor in the round
+
+People always told me be careful of what you do
+And don't go around breaking young girls' hearts
+And mother always told me be careful of who you love
+And be careful of what you do 'cause the lie becomes the truth
+
+Billie Jean is not my lover
+She's just a girl who claims that I am the one
+But the kid is not my son
+She says I am the one, but the kid is not my son` },
+
+            { t: "Beat It", a: "Michael Jackson", l: `They told him, don't you ever come around here
+Don't wanna see your face, you better disappear
+The fire's in their eyes and their words are really clear
+So beat it, just beat it
+
+You better run, you better do what you can
+Don't wanna see no blood, don't be a macho man
+You wanna be tough, better do what you can
+So beat it, but you wanna be bad
+
+Just beat it, beat it, beat it, beat it
+No one wants to be defeated
+Showin' how funky and strong is your fight
+It doesn't matter who's wrong or right
+Just beat it, beat it` },
+
+            { t: "Bohemian Rhapsody", a: "Queen", l: `Is this the real life?
+Is this just fantasy?
+Caught in a landslide
+No escape from reality
+
+Open your eyes
+Look up to the skies and see
+I'm just a poor boy, I need no sympathy
+Because I'm easy come, easy go
+A little high, a little low
+Anyway the wind blows
+Doesn't really matter to me, to me
+
+Mama, just killed a man
+Put a gun against his head
+Pulled my trigger, now he's dead
+Mama, life had just begun
+But now I've gone and thrown it all away
+
+Mama, ooh
+Didn't mean to make you cry
+If I'm not back again this time tomorrow
+Carry on, carry on
+As if nothing really matters` },
+
+            { t: "Don't Stop Me Now", a: "Queen", l: `Tonight I'm gonna have myself a real good time
+I feel alive
+And the world I'll turn it inside out, yeah
+I'm floating around in ecstasy
+So, (don't stop me now)
+(Don't stop me)
+'Cause I'm having a good time, having a good time
+
+I'm a shooting star leaping through the sky
+Like a tiger defying the laws of gravity
+I'm a racing car passing by like Lady Godiva
+I'm gonna go, go, go
+There's no stopping me
+
+I'm burnin' through the sky, yeah
+Two hundred degrees
+That's why they call me Mister Fahrenheit
+I'm traveling at the speed of light
+I wanna make a supersonic man out of you
+
+Don't stop me now
+I'm having such a good time, I'm having a ball
+Don't stop me now
+If you wanna have a good time, just give me a call` },
+
+            { t: "We Will Rock You", a: "Queen", l: `Buddy, you're a boy, make a big noise
+Playing in the street, gonna be a big man someday
+You got mud on your face, you big disgrace
+Kicking your can all over the place, singin'
+
+We will, we will rock you
+We will, we will rock you
+
+Buddy, you're a young man, hard man
+Shouting in the street, gonna take on the world someday
+You got blood on your face, you big disgrace
+Waving your banner all over the place
+
+We will, we will rock you
+Sing it out!
+We will, we will rock you` },
+
+            // SHAKIRA & MALUMA
+            { t: "Waka Waka", a: "Shakira", l: `Llegó el momento, caen las murallas
+Va a ser una batalla, ya no hay miedo
+Ponle la firma, ya no hay vuelta atrás
+Aquí se vino a ganar, sin dar un paso atrás
+
+Tsamina mina, zangalewa
+Porque esto es África
+Tsamina mina eh eh
+Waka waka eh eh
+Tsamina mina zangalewa
+Porque esto es África
+
+Oye a tu Dios y no estarás solo
+Llegas aquí para brillar
+Lo tienes todo
+La hora se acerca, es el momento
+Vas a ganar cada batalla, ya lo presiento` },
+
+            { t: "Hips Don't Lie", a: "Shakira", l: `Ladies up in here tonight
+No fighting
+We got the refugees up in here (no fighting)
+No fighting
+
+I never really knew that she could dance like this
+She make a man wants to speak Spanish
+¿Cómo se llama? (Sí), bonita (sí)
+Mi casa, su casa
+Shakira, Shakira
+
+I'm on tonight, you know my hips don't lie
+And I'm starting to feel it's right
+All the attraction, the tension
+Don't you see, baby, this is perfection?
+
+Oh, boy, I can see your body moving
+Half animal, half man
+I don't, don't really know what I'm doing
+But you seem to have a plan` },
+
+            { t: "Hawái", a: "Maluma", l: `Deja de mentirte
+La foto que subiste con él diciendo que era tu cielo
+Bebé, yo te conozco tan bien, sé que fue pa' darme celos
+No te diré quién, pero llorando por mí te vieron
+Por mí te vieron
+
+Puede que no te haga falta na', aparentemente na'
+Hawái de vacaciones, mis felicitaciones
+Muy lindo en Instagram lo que posteas
+Pa' que yo vea cómo te va, pa' que yo vea
+
+Puede que no te haga falta na', aparentemente na'
+Hawái de vacaciones, mis felicitaciones
+Muy lindo en Instagram lo que posteas
+Pa' que yo vea cómo te va de bien, pero te haces mal
+Porque el amor no se compra con na'` },
+
+            { t: "ADMV", a: "Maluma", l: `Cuando los años nos pesen
+Y las piernas no caminen
+Los ojos se nos cierren
+Y la piel ya no se estire
+
+Cuando lo único que pese
+Sea lo que hicimos en vida
+Y aunque nada de esto pase, woh-oh
+Eres el amor de mi vida
+Eres el amor de mi vida
+
+Cuando nos falle la memoria y solo queden las fotografías
+Que se me olvide todo, menos que tú eres mía
+Cuando los años nos pesen y las piernas no caminen
+Los ojos se nos cierren y la piel ya no se estire` },
+
+            // PAULO LONDRA
+            { t: "Adán y Eva", a: "Paulo Londra", l: `Hoy te busco y sé
+Que como yo te mueres por verme
+No disimules, sé
+Que tienes ganas de tenerme
+
+Como Adán y Eva, tengamos nuestro pecado
+Para distraernos un poquito de lo que está mal
+Y sentarnos en un árbol
+Como si el mundo de afuera no importara nada
+
+Tú eres mi loquita y yo tu loco enamorado
+Que la pasa bien contigo y se olvida del pasado
+De las otras caras, de los otros labios
+Solo quiero estar a tu lado` },
+
+            { t: "Tal Vez", a: "Paulo Londra", l: `Tal vez te quise demasiado
+Tal vez yo no era el indicado
+Pero, mami, ya pasó, el tiempo nos curó
+Y ahora cada uno está por su lado
+
+Yo sé que nos costó, que me dolió a mí y a vos
+Pero ahora te veo bien y me alegro por vos
+Tal vez te quise demasiado
+Tal vez yo no era el indicado
+Pero, mami, ya pasó, el tiempo nos curó
+Y ahora cada uno está por su lado` },
+
+            // ROCK ARGENTINO & SODA
+            { t: "De Música Ligera", a: "Soda Stereo", l: `Ella durmió
+Al calor de las masas
+Y yo desperté
+Queriendo soñarla
+
+Algún tiempo atrás
+Pensé en escribirle
+Y nunca sorteé
+Las trampas del amor
+
+De aquel amor de música ligera
+Nada nos libra, nada más queda
+No le enviaré cenizas de rosas
+Ni pienso evitar un roce secreto
+
+De aquel amor de música ligera
+Nada nos libra, nada más queda
+Nada más queda
+Nada más queda` },
+
+            { t: "Trátame Suavemente", a: "Soda Stereo", l: `Alguien me ha dicho que la soledad
+Se esconde tras tus ojos
+Y que tu cárcel es mi cuerpo
+Que tu cárcel son mis brazos
+
+No quiero soñar mil veces las mismas cosas
+Ni contemplarlas sabiamente
+Quiero que me trates suavemente
+Quiero que me trates suavemente
+
+Te comportas de acuerdo
+Con lo que te dicta cada momento
+Y esta inconstancia, no es algo heroico
+Es más bien algo enfermo` },
+
+            { t: "Cuando Pase El Temblor", a: "Soda Stereo", l: `Yo, caminaré entre las piedras
+Hasta sentir el temblor
+En mis piernas
+A veces tengo temor, lo sé
+A veces vergüenza
+
+Despiértame, cuando pase el temblor
+Mi amor, despiértame
+Cuando pase el temblor
+
+Hay una grieta en mi corazón
+Un planeta con desilusión
+Sé que te encontraré en esas ruinas
+Ya no tendremos que hablar del temblor` },
+
+            { t: "Mil Horas", a: "Los Abuelos de la Nada", l: `Hace frío y estoy lejos de casa
+Hace tiempo que estoy sentado sobre esta piedra
+Yo me pregunto
+Para qué sirven las guerras
+
+Tengo un cohete en el pantalón
+Vos estás tan fría
+Como la nieve a mi alrededor
+Vos estás tan blanca
+
+¿Qué haces afuera? Me preguntaste
+Hace una hora que te espero
+La otra noche te esperé bajo la lluvia
+Dos horas, mil horas, como un perro
+Y cuando llegaste me miraste y me dijiste loco
+Estás mojado, ya no te quiero` },
+
+            { t: "Lamento Boliviano", a: "Enanitos Verdes", l: `Me quieren agitar
+Me incitan a gritar
+Soy como una roca
+Palabras no me tocan
+
+Adentro hay un volcán
+Que pronto va a estallar
+Yo quiero estar tranquilo
+
+Y yo estoy aquí, borracho y loco
+Y mi corazón idiota siempre brillará
+Y yo te amaré, te amaré por siempre
+Nena, no te peines en la cama
+Que los viajantes se van a atrasar` },
+
+            { t: "Flaca", a: "Andrés Calamaro", l: `Flaca, no me claves tus puñales
+Por la espalda, tan profundo
+No me duelen, no me hacen mal
+
+Lejos, en el centro de la Tierra
+Las raíces del amor
+Donde estaban quedarán
+
+Entre no me olvides, me dejé nuestros abriles
+Olvidados en el fondo del placard
+En el cuarto de invitados eran cosas del pasado
+Que nos hacen tanto mal` },
+
+            // LUIS MIGUEL
+            { t: "La Incondicional", a: "Luis Miguel", l: `Tú, la misma siempre tú
+Amistad, ternura qué sé yo
+Tú, mi sombra has sido tú
+La historia de un amor
+Que no fue nada
+
+Tú, mi eternamente tú
+Un hotel, tu cuerpo y un adiós
+Tú, mi oculta amiga tú
+Un golpe de pasión
+Amor de madrugada
+
+Tú, la misma de ayer, la incondicional
+La que no espera nada
+Tú, la misma de ayer, la que no pregunta
+A dónde voy, a dónde vas
+Tú, un hotel, tu cuerpo y un adiós
+Tú, la amiga que sé, que no amo
+Tú, la incondicional` },
+
+            { t: "Ahora Te Puedes Marchar", a: "Luis Miguel", l: `Si tú me hubieras dicho siempre la verdad
+Si hubieras respondido cuando te llamé
+Si hubieras amado cuando te amé
+Serías en mis sueños la mejor mujer
+
+Pero no fue así y hoy te vas
+
+Si no supiste amar
+Ahora te puedes marchar
+Si tú no sabes qué es el amor
+No tienes perdón
+
+Si tú supieras qué es el dolor
+No tendrías perdón
+Si no supiste amar
+Ahora te puedes marchar` },
+
+            { t: "Culpable o No", a: "Luis Miguel", l: `Pronto sabré tu dolor
+Cómo te duele el perder
+Un amor que no supiste cuidar
+Que no pudiste retener
+
+Miénteme con un beso que parezca de amor
+Necesito quererte
+Culpable o no
+No tengo ya derecho a reprocharte nada
+Pues nada queda ya de ti, de ayer
+
+Qué pena nuestra historia
+Qué triste este final
+Qué ganas de llorar` },
+
+            // INTERNACIONALES (COLDPLAY, TAYLOR)
+            { t: "Yellow", a: "Coldplay", l: `Look at the stars
+Look how they shine for you
+And everything you do
+Yeah, they were all yellow
+
+I came along
+I wrote a song for you
+And all the things you do
+And it was called Yellow
+
+Your skin, oh yeah, your skin and bones
+Turn into something beautiful
+You know, you know I love you so
+You know I love you so` },
+
+            { t: "The Scientist", a: "Coldplay", l: `Come up to meet you, tell you I'm sorry
+You don't know how lovely you are
+I had to find you, tell you I need you
+Tell you I set you apart
+
+Tell me your secrets and ask me your questions
+Oh, let's go back to the start
+
+Nobody said it was easy
+It's such a shame for us to part
+Nobody said it was easy
+No one ever said it would be this hard
+Oh, take me back to the start` },
+
+            { t: "Love Story", a: "Taylor Swift", l: `We were both young when I first saw you
+I close my eyes and the flashback starts
+I'm standin' there
+On a balcony in summer air
+
+See the lights, see the party, the ball gowns
+See you make your way through the crowd
+And say, 'Hello'
+Little did I know
+
+That you were Romeo, you were throwin' pebbles
+And my daddy said, 'Stay away from Juliet'
+And I was cryin' on the staircase
+Beggin' you, 'Please don't go,' and I said
+
+Romeo, take me somewhere we can be alone
+I'll be waiting, all there's left to do is run
+You'll be the prince and I'll be the princess
+It's a love story, baby, just say, 'Yes'` },
+
+            { t: "Blank Space", a: "Taylor Swift", l: `Nice to meet you, where you been?
+I could show you incredible things
+Magic, madness, heaven, sin
+Saw you there and I thought
+Oh, my God, look at that face
+You look like my next mistake
+
+So it's gonna be forever
+Or it's gonna go down in flames
+You can tell me when it's over, mm
+If the high was worth the pain
+
+Got a long list of ex-lovers
+They'll tell you I'm insane
+'Cause you know I love the players
+And you love the game` },
+
+            { t: "Cruel Summer", a: "Taylor Swift", l: `Fever dream high in the quiet of the night
+You know that I caught it
+Bad, bad boy
+Shiny toy with a price
+You know that I bought it
+
+Killing me slow, out the window
+I'm always waiting for you to be waiting below
+Devils roll the dice, angels roll their eyes
+What doesn't kill me makes me want you more
+
+And it's new, the shape of your body
+It's blue, the feeling I've got
+And it's ooh, whoa, oh
+It's a cruel summer
+
+It's cool, that's what I tell 'em
+No rules in breakable heaven
+But ooh, whoa, oh
+It's a cruel summer with you` },
+
+            // POP LATINO Y VARIADOS
+            { t: "Torero", a: "Chayanne", l: `De lunes a domingo voy desesperado
+El corazón en la mano gritando que te amo
+No me importa lo que digan, lo que piensen los demás
+Yo te quiero todavía, mucho más
+
+Porque yo, yo te quiero, mi amor
+Y no me importa lo que diga la gente
+Yo te quiero, mi amor
+De lunes a domingo mi mente te tiene presente
+
+Torero, poner el alma en el ruedo
+No importa lo que se venga
+Pa' que sepas que te quiero
+Como un buen torero` },
+
+            { t: "Provócame", a: "Chayanne", l: `Provócame, mujer, provócame
+Provócame a ver, atrévete
+Provócame, a mí, acércate
+Provócame, aquí, piérdete
+
+Quiero tenerte entre mis brazos
+Sentir el fuego de tu cuerpo
+Acariciarte paso a paso
+Y detener el tiempo` },
+
+            { t: "Livin' La Vida Loca", a: "Ricky Martin", l: `She's into superstitions
+Black cats and voodoo dolls
+I feel a premonition
+That girl's gonna make me fall
+
+Upside inside out
+She's livin' la vida loca
+She'll push and pull you down
+Livin' la vida loca
+
+Her lips are devil red
+And her skin's the color mocha
+She will wear you out
+Livin' la vida loca` },
+
+            { t: "La Camisa Negra", a: "Juanes", l: `Tengo la camisa negra
+Hoy mi amor está de luto
+Hoy tengo en el alma una pena
+Y es por culpa de tu embrujo
+
+Hoy sé que tú ya no me quieres
+Y eso es lo que más me hiere
+Que tengo la camisa negra
+Y una pena que me duele
+
+Mal parece que solo me quedé
+Y fue pura todita tu mentira
+Que maldita mala suerte la mía
+Que aquel día te encontré` },
+
+            { t: "Rayando El Sol", a: "Maná", l: `Rayando el sol
+Desesperación
+Es más fácil llegar al sol que a tu corazón
+Me muero por ti
+Viviendo sin ti
+Y no aguanto, me duele tanto estar así
+Rayando el sol
+
+A tu casa yo fui y no te encontré
+En el parque, en la plaza, en el cine yo te busqué
+Te tengo atrapada entre mi piel y mi alma
+Mas ya no puedo tanto y quiero estar junto a ti` },
+
+            { t: "Cómo Te Atreves", a: "Morat", l: `¿Cómo te atreves a volver?
+A darle vida a lo que estaba muerto
+La soledad me había tratado bien
+Y no eres quién para exigir derechos
+
+¿Cómo te atreves a volver?
+Y a tus cenizas convertir en fuego
+Hoy mis mentiras veo caer
+Que no es verdad que te olvidé
+¿Cómo te atreves a volver?` },
+
+            { t: "Color Esperanza", a: "Diego Torres", l: `Sé que hay en tus ojos con solo mirar
+Que estás cansado de andar y de andar
+Y caminar girando siempre en un lugar
+
+Saber que se puede, querer que se pueda
+Quitarse los miedos, sacarlos afuera
+Pintarse la cara color esperanza
+Tentar al futuro con el corazón
+
+Es mejor perderse que nunca embarcar
+Mejor tentarse a dejar de intentar
+Aunque ya ves que no es tan fácil empezar` },
+
+            { t: "Vivir Mi Vida", a: "Marc Anthony", l: `Voy a reír, voy a bailar
+Vivir mi vida, lalalalá
+Voy a reír, voy a gozar
+Vivir mi vida, lalalalá
+
+A veces llega la lluvia
+Para limpiar las heridas
+A veces solo una gota
+Puede vencer la sequía
+
+Y para qué llorar, pa' qué
+Si duele una pena, se olvida
+Y para qué sufrir, pa' qué
+Si así es la vida, hay que vivirla` },
+
+            // POP ROCK / ALTERNATIVE
+            { t: "Take On Me", a: "A-ha", l: `We're talking away
+I don't know what I'm to say
+I'll say it anyway
+Today's another day to find you
+Shying away
+I'll be coming for your love, OK?
+
+Take on me (Take on me)
+Take me on (Take on me)
+I'll be gone
+In a day or two
+
+So needless to say
+I'm odds and ends
+But I'll be stumbling away
+Slowly learning that life is OK
+Say after me
+It's no better to be safe than sorry` },
+
+            { t: "Wonderwall", a: "Oasis", l: `Today is gonna be the day
+That they're gonna throw it back to you
+By now you should've somehow
+Realized what you gotta do
+
+I don't believe that anybody
+Feels the way I do about you now
+
+And all the roads we have to walk are winding
+And all the lights that lead us there are blinding
+There are many things that I would like to say to you
+But I don't know how
+
+Because maybe
+You're gonna be the one that saves me
+And after all
+You're my wonderwall` },
+
+            { t: "Dancing Queen", a: "ABBA", l: `Friday night and the lights are low
+Looking out for a place to go
+Where they play the right music, getting in the swing
+You come to look for a king
+
+You are the dancing queen
+Young and sweet, only seventeen
+Dancing queen
+Feel the beat from the tambourine, oh yeah
+
+You can dance, you can jive
+Having the time of your life
+Ooh, see that girl, watch that scene
+Digging the dancing queen` },
+
+            { t: "In The End", a: "Linkin Park", l: `It starts with one thing
+I don't know why
+It doesn't even matter how hard you try
+Keep that in mind, I designed this rhyme
+To explain in due time
+All I know
+
+Time is a valuable thing
+Watch it fly by as the pendulum swings
+Watch it count down to the end of the day
+The clock ticks life away
+
+I tried so hard and got so far
+But in the end, it doesn't even matter
+I had to fall to lose it all
+But in the end, it doesn't even matter` },
+
+            { t: "Sugar", a: "Maroon 5", l: `I'm hurting, baby, I'm broken down
+I need your loving, loving, I need it now
+When I'm without you
+I'm something weak
+You got me begging, begging, I'm on my knees
+
+I don't wanna be needing your love
+I just wanna be deep in your love
+And it's killing me when you're away
+
+Sugar, yes please
+Won't you come and put it down on me?
+I'm right here, 'cause I need
+Little love, a little sympathy` },
+
+            { t: "Titanium", a: "David Guetta ft. Sia", l: `You shout it out
+But I can't hear a word you say
+I'm talking loud not saying much
+
+I'm criticized
+But all your bullets ricochet
+You shoot me down, but I get up
+
+I'm bulletproof, nothing to lose
+Fire away, fire away
+Ricochet, you take your aim
+Fire away, fire away
+
+You shoot me down, but I won't fall
+I am titanium
+You shoot me down, but I won't fall
+I am titanium` },
+
+            { t: "Just The Way You Are", a: "Bruno Mars", l: `Oh, her eyes, her eyes
+Make the stars look like they're not shinin'
+Her hair, her hair
+Falls perfectly without her tryna
+She's so beautiful
+And I tell her everyday
+
+When I see your face
+There's not a thing that I would change
+'Cause you're amazing
+Just the way you are
+
+And when you smile
+The whole world stops and stares for a while
+'Cause, girl, you're amazing
+Just the way you are` },
+
+            { t: "Perfect", a: "Ed Sheeran", l: `I found a love for me
+Oh darling, just dive right in and follow my lead
+Well, I found a girl, beautiful and sweet
+Oh, I never knew you were the someone waiting for me
+
+'Cause we were just kids when we fell in love
+Not knowing what it was
+I will not give you up this time
+But darling, just kiss me slow, your heart is all I own
+And in your eyes, you're holding mine
+
+Baby, I'm dancing in the dark, with you between my arms
+Barefoot on the grass, listening to our favorite song
+When you said you looked a mess, I whispered underneath my breath
+But you heard it, darling, you look perfect tonight` },
+
+            { t: "Stayin' Alive", a: "Bee Gees", l: `Well, you can tell by the way I use my walk
+I'm a woman's man, no time to talk
+Music loud and women warm, I've been kicked around
+Since I was born
+
+And now it's alright, it's okay
+And you may look the other way
+We can try to understand
+The New York Times' effect on man
+
+Whether you're a brother or whether you're a mother
+You're stayin' alive, stayin' alive
+Feel the city breakin' and everybody shakin'
+And we're stayin' alive, stayin' alive
+Ah, ha, ha, ha, stayin' alive, stayin' alive
+Ah, ha, ha, ha, stayin' alive` },
+
+            { t: "Uptown Funk", a: "Mark Ronson ft. Bruno Mars", l: `This hit, that ice cold
+Michelle Pfeiffer, that white gold
+This one for them hood girls
+Them good girls straight masterpieces
+Stylin', wilin', livin' it up in the city
+Got Chucks on with Saint Laurent
+Gotta kiss myself, I'm so pretty
+
+I'm too hot (hot damn)
+Call the police and the fireman
+I'm too hot (hot damn)
+Make a dragon wanna retire man
+I'm too hot (hot damn)
+Say my name you know who I am
+I'm too hot (hot damn)
+And my band 'bout to get money, break it down
+
+Girls hit your hallelujah (whoo)
+Girls hit your hallelujah (whoo)
+Girls hit your hallelujah (whoo)
+'Cause uptown funk gon' give it to you` },
+
+            { t: "Thinking Out Loud", a: "Ed Sheeran", l: `When your legs don't work like they used to before
+And I can't sweep you off of your feet
+Will your mouth still remember the taste of my love
+Will your eyes still smile from your cheeks?
+
+And darling I will be loving you 'til we're 70
+And baby my heart could still fall as hard at 23
+And I'm thinking 'bout how people fall in love in mysterious ways
+Maybe just the touch of a hand
+Oh me I fall in love with you every single day
+And I just wanna tell you I am
+
+So honey now
+Take me into your loving arms
+Kiss me under the light of a thousand stars
+Place your head on my beating heart
+I'm thinking out loud
+Maybe we found love right where we are` },
+
+            { t: "Rolling In The Deep", a: "Adele", l: `There's a fire starting in my heart
+Reaching a fever pitch and it's bringing me out the dark
+Finally, I can see you crystal clear
+Go ahead and sell me out and I'll lay your ship bare
+
+The scars of your love remind me of us
+They keep me thinking that we almost had it all
+The scars of your love, they leave me breathless
+I can't help feeling
+
+We could have had it all
+(You're gonna wish you never had met me)
+Rolling in the deep
+(Tears are gonna fall, rolling in the deep)
+You had my heart inside of your hand
+And you played it to the beat` },
+
+            { t: "Sofia", a: "Alvaro Soler", l: `Sueño cuando era pequeño
+Sin preocupación en el corazón
+Sigo viendo aquel momento
+Se desvaneció, desapareció
+
+Ya no te creo, ya no te deseo, eh oh
+Solo te dejo, solo te deseo, eh oh
+
+Mira, Sofía
+Sin tu mirada sigo
+Sin tu mirada, sigo
+Dime, Sofía
+Cómo te mira dime
+Cómo te mira, dime
+
+Sé que no, sé que no
+Sé que solo
+Sé que ya no soy oy oy oy` },
+
+            { t: "Despacito", a: "Luis Fonsi ft. Daddy Yankee", l: `Sí, sabes que ya llevo un rato mirándote
+Tengo que bailar contigo hoy
+Vi que tu mirada ya estaba llamándome
+Muéstrame el camino que yo voy
+
+Tú, tú eres el imán y yo soy el metal
+Me voy acercando y voy armando el plan
+Solo con pensarlo se acelera el pulso
+
+Despacito
+Quiero respirar tu cuello despacito
+Deja que te diga cosas al oído
+Para que te acuerdes si no estás conmigo
+
+Despacito
+Quiero desnudarte a besos despacito
+Firmo en las paredes de tu laberinto
+Y hacer de tu cuerpo todo un manuscrito` },
+
+            { t: "Limón y Sal", a: "Julieta Venegas", l: `Tengo que confesar que a veces
+No me gusta tu forma de ser
+Luego te me desapareces
+Y no entiendo muy bien por qué
+
+Pero luego vienes y me das un beso
+Y me dices que me quieres
+Y entonces todo se me olvida
+Y ya no sé qué hacer
+
+Yo te quiero con limón y sal
+Yo te quiero tal y como estás
+No hace falta cambiarte nada
+Yo te quiero si vienes o si vas
+Si subes o si bajas, y si no estás seguro
+De lo que sientes, yo te quiero igual` }
         ];
 
-        let spinning = false;
-        let timer;
-        const btn = document.getElementById('main-btn');
-        const icon = document.getElementById('btn-icon');
-        const titleEl = document.getElementById('song-title');
-        const artistEl = document.getElementById('artist-name');
-        const lyricsEl = document.getElementById('lyrics-container');
+        // Referencias al DOM
+        const searchBar = document.getElementById('search-bar');
+        const songListContainer = document.getElementById('song-list');
+        const lyricsView = document.getElementById('lyrics-view');
+        const activeTitle = document.getElementById('active-title');
+        const activeArtist = document.getElementById('active-artist');
+        const lyricsContent = document.getElementById('lyrics-content');
+        const btnBack = document.getElementById('btn-back');
 
-        function spin() {
-            spinning = true;
-            icon.className = "icon-stop";
-            lyricsEl.classList.remove('lyrics-active');
-            
-            timer = setInterval(() => {
-                const pick = songs[Math.floor(Math.random() * songs.length)];
-                titleEl.innerText = pick.t;
-                artistEl.innerText = pick.a;
-                lyricsEl.innerText = pick.l;
-                // Vuelve el scroll hacia arriba mientras gira
-                lyricsEl.scrollTop = 0; 
-            }, 65);
+        // Ordenar alfabéticamente
+        songs.sort((a, b) => a.t.localeCompare(b.t));
+
+        // Renderizar lista
+        function renderList(filterText = "") {
+            songListContainer.innerHTML = "";
+            const filteredSongs = songs.filter(song => {
+                const searchLower = filterText.toLowerCase();
+                return song.t.toLowerCase().includes(searchLower) || 
+                       song.a.toLowerCase().includes(searchLower);
+            });
+
+            if (filteredSongs.length === 0) {
+                songListContainer.innerHTML = "<p style='text-align:center; color: #888; margin-top:20px;'>No se encontraron canciones.</p>";
+                return;
+            }
+
+            filteredSongs.forEach(song => {
+                const div = document.createElement('div');
+                div.className = 'song-item';
+                div.innerHTML = `
+                    <div class="song-item-title">${song.t}</div>
+                    <div class="song-item-artist">${song.a}</div>
+                `;
+                div.addEventListener('click', () => openLyrics(song));
+                songListContainer.appendChild(div);
+            });
         }
 
-        function stop() {
-            spinning = false;
-            icon.className = "icon-play";
-            clearInterval(timer);
-            lyricsEl.classList.add('lyrics-active');
+        // Abrir letra
+        function openLyrics(song) {
+            activeTitle.innerText = song.t;
+            activeArtist.innerText = song.a;
+            lyricsContent.innerText = song.l;
+            lyricsView.classList.add('active');
+            lyricsContent.scrollTop = 0;
+            searchBar.blur(); 
         }
 
-        btn.addEventListener('click', () => {
-            if (spinning) stop();
-            else spin();
+        // Volver atrás
+        btnBack.addEventListener('click', () => {
+            lyricsView.classList.remove('active');
         });
+
+        // Buscador
+        searchBar.addEventListener('input', (e) => {
+            renderList(e.target.value);
+        });
+
+        // Iniciar
+        renderList();
     </script>
 </body>
 </html>
-
